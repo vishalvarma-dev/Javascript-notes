@@ -19,7 +19,7 @@ The engine scans the entire code **before running a single line** and allocates 
 
 - **`var` variables** → stored as `undefined`
 - **Function declarations** → stored as the **entire function body**
-- **`let` / `const` variables** → stored but placed in a **Temporal Dead Zone (TDZ)** — they exist in memory but cannot be accessed yet
+- **`let` / `const` variables** → allocated in memory but not yet usable
 
 No code executes during this phase.
 
@@ -38,9 +38,9 @@ function greet() {
 After the memory phase, internally it looks like:
 
 ```
-age      → undefined          (var, hoisted to undefined)
-city     → <TDZ>              (let, cannot be touched yet)
-PI       → <TDZ>              (const, cannot be touched yet)
+age      → undefined          (var)
+city     → allocated          (let, not usable yet)
+PI       → allocated          (const, not usable yet)
 greet    → function body      (whole function stored)
 ```
 
@@ -52,53 +52,6 @@ The engine goes through the code **line by line** and runs it:
 
 - Variables get their actual values assigned.
 - Functions get called when invoked.
-- `let` / `const` exit the TDZ when their line is reached.
-
----
-
-## Hoisting
-
-**Hoisting** is the behaviour where variables and functions are "lifted" to the top of their scope during the memory phase — so you can reference them before they appear in the code.
-
-### `var` — hoisted to `undefined`
-
-```javascript
-console.log(name); // undefined  (no error!)
-var name = "Alice";
-console.log(name); // "Alice"
-```
-
-`name` was allocated in memory as `undefined` before line 1 ran.
-
-### Function declarations — fully hoisted
-
-```javascript
-sayHi(); // "Hi!"  (works before the definition!)
-
-function sayHi() {
-  console.log("Hi!");
-}
-```
-
-The whole function body was stored in memory during Phase 1.
-
-### `let` / `const` — hoisted but in the TDZ
-
-```javascript
-console.log(score); // ReferenceError: Cannot access 'score' before initialization
-let score = 100;
-```
-
-`score` exists in memory but is in the **Temporal Dead Zone** — accessing it before its line throws an error.
-
-### Quick comparison
-
-| Declaration | Hoisted? | Initial value | Accessible before line? |
-|---|---|---|---|
-| `var` | ✅ Yes | `undefined` | ✅ Yes (returns `undefined`) |
-| `function` | ✅ Yes | Full body | ✅ Yes (fully callable) |
-| `let` | ✅ Yes | TDZ | ❌ No (ReferenceError) |
-| `const` | ✅ Yes | TDZ | ❌ No (ReferenceError) |
 
 ---
 
@@ -247,7 +200,7 @@ JS Engine
 ├── Parses code
 └── Creates Global Execution Context
     │
-    ├── Phase 1: Memory  → var=undefined, let/const=TDZ, functions=full body
+    ├── Phase 1: Memory  → var=undefined, functions=full body, let/const=allocated
     └── Phase 2: Execute → code runs line by line
                 │
                 └── Function called?
